@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 我的专属点歌台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+        }
+        /* 页面背景 */
+        body {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+        /* 主卡片容器 */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 40px 30px;
+            backdrop-filter: blur(10px);
+        }
+        /* 标题样式 */
+        .title {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 35px;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #0984e3, #74b9ff);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        /* 歌曲项样式 */
+        .song-item {
+            padding: 16px 20px;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 4px solid transparent;
+        }
+        /* 鼠标悬停效果 */
+        .song-item:hover {
+            background: rgba(116, 185, 255, 0.15);
+            transform: translateX(8px);
+            border-left: 4px solid #74b9ff;
+            box-shadow: 0 4px 12px rgba(116, 185, 255, 0.2);
+        }
+        /* 播放中高亮样式 */
+        .song-item.active {
+            background: rgba(116, 185, 255, 0.2);
+            border-left: 4px solid #0984e3;
+        }
+        .song-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .song-id {
+            color: #74b9ff;
+            font-weight: bold;
+            min-width: 24px;
+        }
+        .song-name {
+            color: #2d3436;
+            font-size: 16px;
+            flex: 1;
+        }
+        .song-singer {
+            color: #b2bec3;
+            font-size: 13px;
+            margin-top: 4px;
+            margin-left: 34px;
+        }
+        /* 播放区域样式 */
+        .playing-area {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            display: none;
+            box-shadow: 0 4px 16px rgba(0, 188, 212, 0.2);
+        }
+        .playing-title {
+            color: #2d3436;
+            font-size: 18px;
+            margin-bottom: 6px;
+        }
+        .playing-singer {
+            color: #636e72;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+        audio {
+            width: 100%;
+            outline: none;
+            border-radius: 30px;
+        }
+        /* 手机端适配 */
+        @media (max-width: 500px) {
+            .container {
+                padding: 25px 20px;
+                border-radius: 16px;
+            }
+            .title {
+                font-size: 22px;
+            }
+            .song-name {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title">🎵 我的专属点歌台</div>
+        <div id="songList"></div>
+        <div class="playing-area" id="playingArea">
+            <div class="playing-title" id="playingTitle"></div>
+            <div class="playing-singer" id="playingSinger"></div>
+            <audio id="audioPlayer" controls>
+        </div>
+    </div>
+
+    <script>
+        // 你的13首歌曲列表，后续加歌直接在这里修改
+        const songs = [
+            { id: 1, name: "Farewell of the Voyager Star", singer: "love", file: "star.mp3" },
+            { id: 2, name: "Haiyu,you", singer: "hourse", file: "you.mp3" },
+            { id: 3, name: "Red Wish", singer: "Yinque", file: "Wish.mp3" },
+            { id: 4, name: "memories for you", singer: "wangerwave", file: "memories for you.mp3" },
+            { id: 5, name: "prank", singer: "linsun", file: "prank.mp3" },
+            { id: 6, name: "StarvingThousand Miles", singer: "Hanser", file: "StarvingThousand Miles.mp3" },
+            { id: 7, name: "time movie", singer: "Tiko", file: "time movie.mp3" },
+            { id: 8, name: "I kown", singer: "Dream", file: "I kown.mp3" },
+            { id: 9, name: "Heart Wall", singer: "GuoJing", file: "Heart Wall.mp3" },
+            { id: 10, name: "heartbeat", singer: "SSYuanXI", file: "heartbeat.mp3" },
+            { id: 11, name: "think person", singer: "ZengSX", file: "think person.mp3" },
+            { id: 12, name: "Love Rain", singer: "YangcL", file: "Love Rain.mp3" },
+            { id: 13, name: "Eutopia", singer: "Yooh", file: "Eutopia.mp3" }
+        ];
+
+        // 页面元素绑定
+        const songListEl = document.getElementById('songList');
+        const playingAreaEl = document.getElementById('playingArea');
+        const playingTitleEl = document.getElementById('playingTitle');
+        const playingSingerEl = document.getElementById('playingSinger');
+        const audioPlayerEl = document.getElementById('audioPlayer');
+
+        // 页面加载完成后生成歌曲列表
+        window.onload = function() {
+            let activeItem = null; // 记录当前播放的歌曲
+            songs.forEach(song => {
+                const songItem = document.createElement('div');
+                songItem.className = 'song-item';
+                songItem.innerHTML = `
+                    <div class="song-header">
+                        <span class="song-id">${song.id}</span>
+                        <span class="song-name">${song.name}</span>
+                    </div>
+                    <div class="song-singer">${song.singer}</div>
+                `;
+
+                // 点击播放逻辑
+                songItem.addEventListener('click', () => {
+                    // 取消上一首的高亮
+                    if(activeItem) activeItem.classList.remove('active');
+                    // 给当前歌曲加高亮
+                    songItem.classList.add('active');
+                    activeItem = songItem;
+
+                    // 播放音频
+                    playingTitleEl.innerText = song.name;
+                    playingSingerEl.innerText = `—— ${song.singer}`;
+                    audioPlayerEl.src = song.file;
+                    audioPlayerEl.play();
+                    playingAreaEl.style.display = 'block';
+                });
+
+                songListEl.appendChild(songItem);
+            });
+        };
+    </script>
+</body>
+</html>
